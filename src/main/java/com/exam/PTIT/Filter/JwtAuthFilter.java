@@ -2,6 +2,9 @@ package com.exam.PTIT.Filter;
 
 import com.exam.PTIT.Service.Jwt.JwtService;
 import com.exam.PTIT.Service.User.UserInfoService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.security.SignatureException;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -27,23 +31,45 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            username = jwtService.extractUsername(token);
-        }
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            String authHeader = request.getHeader("Authorization");
+            String token = null;
+            String username = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+                username = jwtService.extractUsername(token);
+                System.out.println(username);
             }
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (jwtService.validateToken(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+            filterChain.doFilter(request, response);
+        } catch (MalformedJwtException ex){
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT token");
+
         }
-        filterChain.doFilter(request, response);
+        catch (ExpiredJwtException ex){
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST, "Expired JWT token");
+
+        }
+        catch (UnsupportedJwtException ex){
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported JWT token");
+
+        }
+        catch (IllegalArgumentException ex){
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_BAD_REQUEST, "JWT claims string is empty");
+
+        }
     }
 }
 

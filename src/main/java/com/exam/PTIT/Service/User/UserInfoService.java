@@ -3,6 +3,8 @@ package com.exam.PTIT.Service.User;
 import com.exam.PTIT.Entity.UserInfo;
 import com.exam.PTIT.Repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,7 +37,14 @@ public class UserInfoService implements UserDetailsService {
         userInfoRepository.save(userInfo);
         return "User Added Successfully";
     }
-
+    public Optional<UserInfo> getUserByUsername(String username) {
+        return userInfoRepository.findByName(username);
+    }
+    public String getUserName() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        return username;
+    }
 
 }
 

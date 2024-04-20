@@ -7,7 +7,10 @@ import com.exam.PTIT.Repository.UserInfoRepository;
 import com.exam.PTIT.Service.Jwt.JwtService;
 import com.exam.PTIT.Service.User.UserInfoService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SignatureException;
 import java.util.Optional;
 
 @RestController
@@ -52,19 +56,32 @@ public class UserController {
     }
     @GetMapping("/admin/adminProfile")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Optional<UserInfo>> adminProfile(HttpServletRequest request){
-        String authHeader = request.getHeader("Authorization");
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
-        return ResponseEntity.status(200).body(userInfoRepository.findByName(username));
+    public ResponseEntity<?> adminProfile(HttpServletRequest request){
+        try {
+            String authHeader = request.getHeader("Authorization");
+            String token = authHeader.substring(7);
+            String username = jwtService.extractUsername(token);
+            return ResponseEntity.status(200).body(userInfoRepository.findByName(username));
+        }catch (Exception ex){
+            return new ResponseEntity<>(ex,HttpStatus.BAD_REQUEST);
+        }
     }
     @PostMapping("/generateToken")
-    public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-        if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(authRequest.getUsername());
+    public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+
+            System.out.println(authentication.isAuthenticated());
+            if (authentication.isAuthenticated()) {
+
+                return ResponseEntity.ok(jwtService.generateToken(authRequest.getUsername()));
+            }
+            throw new UsernameNotFoundException("invalid user request !");
+        }catch (Exception ex){
+            System.out.println(ex);
+            return new ResponseEntity<>("tk mk sai",HttpStatus.BAD_REQUEST);
         }
-        throw new UsernameNotFoundException("invalid user request !");
     }
 
 }
