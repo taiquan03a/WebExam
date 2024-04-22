@@ -11,12 +11,14 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "exam_user")
+@Builder
 public class ExamUser{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "exam_id")
     private Exam exam;
@@ -32,11 +34,11 @@ public class ExamUser{
 
     @Column(name = "time_start")
     @Temporal(TemporalType.TIMESTAMP)
-    Date timeStart;
+    private Date timeStart;
 
     @Column(name = "time_finish")
     @Temporal(TemporalType.TIMESTAMP)
-    Date timeFinish;
+    private Date timeFinish;
 
     @JsonIgnore
     @Column(name="answer_sheet", columnDefinition = "text")

@@ -6,12 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class ChoiceRespon {
+@NoArgsConstructor
+@Builder
+public class ExamStatisticsCount {
     private Long id;
-    private String choiceText;
-    private Boolean answer;
-    private Boolean answerSelect;
+    private String nameExam;
+    private Long countUser;
+    private double completion;
+    private double pointAverage;
 }

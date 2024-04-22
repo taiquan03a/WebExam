@@ -1,9 +1,12 @@
 package com.exam.PTIT.Controller;
 
+import com.exam.PTIT.DTOs.ExamUserDto;
 import com.exam.PTIT.Entity.Exam;
 import com.exam.PTIT.Response.ExamRespon;
 import com.exam.PTIT.Service.Exam.ExamService;
+import com.exam.PTIT.Service.ExamUser.ExamUserService;
 import com.exam.PTIT.Service.Jwt.JwtService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,8 @@ public class ExamController {
     private ExamService examService;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private ExamUserService examUserService;
 
     @GetMapping("getPageUser")
     public ResponseEntity<?> getExamListByUser(
@@ -65,4 +70,20 @@ public class ExamController {
     public ResponseEntity<?> userExamDetail(@PathVariable Long examId){
         return examService.userExamDetail(examId);
     }
+
+    @PostMapping("/{examId}/play")
+    public ResponseEntity<?> userExam(
+            @PathVariable Long examId,
+            @RequestHeader("Authorization") String token,
+            @RequestBody ExamUserDto examUserDto
+    ) throws JsonProcessingException {
+        token = token.substring(7);
+        String username = jwtService.extractUsername(token);
+        return examUserService.createUserExam(username,examId,examUserDto);
+    }
+    @GetMapping("/getUser/{examId}")
+    public ResponseEntity<?> getUserByExam(@PathVariable Long examId){
+        return examUserService.userListByExam(examId);
+    }
+
 }

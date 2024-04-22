@@ -68,7 +68,10 @@ public class ExamServiceImpl implements ExamService{
         calendar.setTime(requestExam.getBeginExam());
         calendar.add(Calendar.MINUTE, requestExam.getDurationExam());
         Date sumTime = calendar.getTime();
-        if(sumTime.compareTo(requestExam.getFinishExam()) < 0) {
+        System.out.println(requestExam.getBeginExam());
+        System.out.println(sumTime);
+        System.out.println(requestExam.getFinishExam());
+        if(sumTime.compareTo(requestExam.getFinishExam()) > 0) {
             return new ResponseEntity<>("begin time + duration time > finish time", HttpStatus.BAD_REQUEST);
         }
         Exam exam = Exam.builder()
@@ -134,6 +137,8 @@ public class ExamServiceImpl implements ExamService{
         for(Choice choice : question.getChoices()){
             ChoiceRespon choiceRespon = ChoiceRespon
                     .builder()
+                    .id(choice.getId())
+                    .answer(choice.isAnswer())
                     .choiceText(choice.getChoiceText())
                     .build();
             choiceResponList.add(choiceRespon);

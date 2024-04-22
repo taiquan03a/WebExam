@@ -28,16 +28,9 @@ public class Question implements Serializable {
     @Column(name = "exam_id")
     private Long examId;
 
-    @OneToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "question_type_id")
-    private QuestionType questionType;
-
     @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
     @JoinColumn(name = "question_id")
     private List<Choice> choices;
 
-//    @JsonIgnore
-//    @OneToMany(mappedBy = "exam")
-//    private Set<ExamQuestion> exams;
 
 }

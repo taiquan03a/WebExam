@@ -4,8 +4,10 @@ package com.exam.PTIT.Controller;
 import com.exam.PTIT.Entity.AuthRequest;
 import com.exam.PTIT.Entity.UserInfo;
 import com.exam.PTIT.Repository.UserInfoRepository;
+import com.exam.PTIT.Service.ExamUser.ExamUserService;
 import com.exam.PTIT.Service.Jwt.JwtService;
 import com.exam.PTIT.Service.User.UserInfoService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,8 @@ public class UserController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private ExamUserService examUserService;
 
     @GetMapping("/welcome")
     public ResponseEntity<?> welcom(){
@@ -83,6 +87,20 @@ public class UserController {
             return new ResponseEntity<>("tk mk sai",HttpStatus.BAD_REQUEST);
         }
     }
-
+    @GetMapping("user/getAllExam")
+    public ResponseEntity<?> getAllExamByUser(@RequestHeader("Authorization") String token){
+        token = token.substring(7);
+        String username = jwtService.extractUsername(token);
+        return examUserService.examListByUser(username);
+    }
+    @GetMapping("user/examResult/{examId}")
+    public ResponseEntity<?> examResult(
+            @PathVariable Long examId,
+            @RequestHeader("Authorization") String token
+    ) throws JsonProcessingException {
+        token = token.substring(7);
+        String username = jwtService.extractUsername(token);
+        return examUserService.ExamResult(examId,username);
+    }
 }
 

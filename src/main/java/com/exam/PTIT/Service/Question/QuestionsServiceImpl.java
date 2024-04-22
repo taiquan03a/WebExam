@@ -33,7 +33,6 @@ public class QuestionsServiceImpl implements QuestionService{
                     .examId(examId)
                     .questionText(requestQuestion.getQuestionText())
                     .point(requestQuestion.getPoint())
-                    .questionType(null)
                     .build();
             questionRepository.save(question);
             Long questionId = question.getId();

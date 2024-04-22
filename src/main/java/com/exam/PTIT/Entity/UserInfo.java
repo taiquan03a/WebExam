@@ -1,5 +1,6 @@
 package com.exam.PTIT.Entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,6 +26,8 @@ public class UserInfo {
     @Column(name = "roles")
     private String roles;
 
+    @Column(name = "name")
+    private String fullName;
 
     @Email
     @Column(name = "email", unique = true, nullable = false)
@@ -33,11 +36,13 @@ public class UserInfo {
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="Asia/Ho_Chi_Minh")
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_date", updatable = false, nullable = false)
     private Date createdDate;
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="Asia/Ho_Chi_Minh")
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "lastest_login_date", updatable = true, nullable = true)

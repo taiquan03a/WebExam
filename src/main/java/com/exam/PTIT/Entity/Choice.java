@@ -21,6 +21,7 @@ public class Choice implements Serializable {
     private String choiceText;
     @Column(name = "answer")
     private boolean answer;
+
     @Column(name = "corrected")
     private int isCorrected;
 
