@@ -78,13 +78,13 @@ public class ExamServiceImpl implements ExamService{
                 .beginExam(requestExam.getBeginExam())
                 .durationExam(requestExam.getDurationExam())
                 .finishExam(requestExam.getFinishExam())
+                .name(requestExam.getName())
 //                .status(1)
                 .title(requestExam.getTitle())
                 .createdDate(new Date())
                 .createdBy(username)
                 .course(requestExam.getCourse())
                 .build();
-
         examRepository.save(exam);
         return ResponseEntity.ok(examRepository.findExamById(exam.getId()));
     }

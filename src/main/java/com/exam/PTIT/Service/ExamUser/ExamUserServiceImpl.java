@@ -8,10 +8,7 @@ import com.exam.PTIT.Repository.ExamRepository;
 import com.exam.PTIT.Repository.ExamUserRepository;
 import com.exam.PTIT.Repository.QuestionRepository;
 import com.exam.PTIT.Repository.UserInfoRepository;
-import com.exam.PTIT.Response.ChoiceRespon;
-import com.exam.PTIT.Response.ExamRespon;
-import com.exam.PTIT.Response.QuestionRespon;
-import com.exam.PTIT.Response.UserRespon;
+import com.exam.PTIT.Response.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +46,7 @@ public class ExamUserServiceImpl implements ExamUserService {
             List<ChoiceDto> choiceDtos = answerSheet.getChoiceDtos();
             List<ChoiceRespon> choiceRespons = new ArrayList<>();
             int index = choiceDtos.size();
+            boolean check = true;
             for(int i = 0; i < choices.size(); i++){
                 Long choiceId = choices.get(i).getId();
                 boolean answer = choices.get(i).isAnswer();
@@ -62,9 +60,8 @@ public class ExamUserServiceImpl implements ExamUserService {
                             .answerSelect(answerSelect)
                             .build();
                     choiceRespons.add(choiceRespon);
-                    if((answer == true) && (answerSelect == true)) {
-                        totalPoint+= question.getPoint();
-                        System.out.println(totalPoint);
+                    if(((answer == true) && (answerSelect == false)) || (answer == false && answerSelect == true)) {
+                        check = false;
                     }
                 }else {
                     ChoiceRespon choiceRespon = ChoiceRespon
@@ -77,6 +74,11 @@ public class ExamUserServiceImpl implements ExamUserService {
                     choiceRespons.add(choiceRespon);
                 }
                 index--;
+            }
+            if(check){
+                totalPoint += question.getPoint();
+            }else{
+                check = true;
             }
             QuestionRespon questionRespon = QuestionRespon
                     .builder()
@@ -114,6 +116,7 @@ public class ExamUserServiceImpl implements ExamUserService {
                     .builder()
                     .email(examuser.getUser().getEmail())
                     .username(examuser.getUser().getName())
+                    .totalPoint(examuser.getTotalPoint())
                     .build();
             userRespons.add(userRespon);
         }
@@ -145,20 +148,25 @@ public class ExamUserServiceImpl implements ExamUserService {
     @Override
     public ResponseEntity<?> ExamResult(Long examId, String username) throws JsonProcessingException {
         List<ExamUser> examUsers = examUserRepository.findAllByUserNameAndExamId(username,examId);
-        List<List<QuestionRespon>> questions = new ArrayList<>();
-//        for(ExamUser examUser : examUsers){
-//            String answerSheet = examUser.getAnswerSheet();
-//            ObjectMapper mapper = new ObjectMapper();
-//            List<QuestionRespon> questionResponList = mapper.readValue(answerSheet, new TypeReference<List<QuestionRespon>>() {});
-//            //questions.add(questionResponList);
-//            if(questionResponList.size() != 0) return ResponseEntity.ok(questionResponList);
-//        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonCarArray =
-                "[{ \"color\" : \"Black\", \"type\" : \"BMW\" }, { \"color\" : \"Red\", \"type\" : \"FIAT\" }]";
+        List<ExamResult> examResults = new ArrayList<>();
+        for(ExamUser examUser : examUsers){
+            String answerSheet = examUser.getAnswerSheet();
+            ObjectMapper mapper = new ObjectMapper();
+            List<QuestionRespon> questionResponList = mapper.readValue(answerSheet, new TypeReference<List<QuestionRespon>>() {});
+            ExamResult examResult = ExamResult.builder()
+                    .examName(examUser.getExam().getName())
+                    .totalPoint(examUser.getTotalPoint())
+                    .questionResponList(questionResponList)
+                    .build();
+            examResults.add(examResult);
+            //if(!questionResponList.isEmpty()) return ResponseEntity.ok(questionResponList);
+        }
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        String jsonCarArray =
+//                "[{ \"color\" : \"Black\", \"type\" : \"BMW\" }, { \"color\" : \"Red\", \"type\" : \"FIAT\" }]";
         //List<Car> listCar = objectMapper.readValue(jsonCarArray, new TypeReference<List<Car>>(){});
-        List<QuestionRespon> questionResponList = objectMapper.readValue(examUsers.get(4).getAnswerSheet(), new TypeReference<List<QuestionRespon>>() {});
+        //List<QuestionRespon> questionResponList = objectMapper.readValue(examUsers.get(4).getAnswerSheet(), new TypeReference<List<QuestionRespon>>() {});
         //return ResponseEntity.ok(questions);
-        return new ResponseEntity<>(questionResponList,HttpStatus.OK);
+        return new ResponseEntity<>(examResults,HttpStatus.OK);
     }
 }
